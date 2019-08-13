@@ -23,6 +23,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.record.TimestampType;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
@@ -169,6 +170,28 @@ public class IntegrationTestUtils {
             .map(record -> new KeyValue<>(null, record))
             .collect(Collectors.toList());
     produceKeyValuesSynchronously(topic, keyedRecords, producerConfig);
+  }
+
+  /**
+   * Like {@link IntegrationTestUtils#produceValuesSynchronously(String, Collection, Properties)}, except for use with
+   * TopologyTestDriver tests, rather than "native" Kafka broker tests.
+   *
+   * @param topic              Kafka topic to write the data records to
+   * @param values             Message values to write to Kafka (keys will have type byte[] and be set to null)
+   * @param topologyTestDriver The {@link TopologyTestDriver} to send the data records to
+   * @param valueSerializer    The {@link Serializer} corresponding to the value type
+   * @param <V>                Value type of the data records
+   */
+  static <K, V> void produceValuesSynchronously(final String topic,
+                                                final List<V> values,
+                                                final TopologyTestDriver topologyTestDriver,
+                                                final Serializer<V> valueSerializer) {
+    final List<KeyValue<byte[], V>> keyedRecords =
+      values
+        .stream()
+        .map(value -> new KeyValue<byte[], V>(null, value))
+        .collect(Collectors.toList());
+    produceKeyValuesSynchronously(topic, keyedRecords, topologyTestDriver, new ByteArraySerializer(), valueSerializer);
   }
 
   public static <K, V> List<KeyValue<K, V>> waitUntilMinKeyValueRecordsReceived(
@@ -339,10 +362,16 @@ public class IntegrationTestUtils {
     final Map<K, V> results = new LinkedHashMap<>();
     while (true) {
       final ProducerRecord<K, V> record = topologyTestDriver.readOutput(topic, keyDeserializer, valueDeserializer);
-      if (record == null) {
+      // Tables ignore records with null keys.
+      if (record == null || record.key() == null) {
         break;
       } else {
-        results.put(record.key(), record.value());
+        // For tables, a null-valued record represents a "DELETE" or tombstone for the corresponding key.
+        if (record.value() == null) {
+          results.remove(record.key());
+        } else {
+          results.put(record.key(), record.value());
+        }
       }
     }
     return results;
