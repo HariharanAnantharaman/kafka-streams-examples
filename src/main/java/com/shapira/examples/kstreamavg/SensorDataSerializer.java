@@ -17,6 +17,7 @@ public class SensorDataSerializer implements Serializer<SensorData> {
 		Serializer.super.configure(configs, isKey);
 	}
 
+	
 	@Override
 	public byte[] serialize(String topic, Headers headers, SensorData data) {
 		// TODO Auto-generated method stub

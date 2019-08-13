@@ -8,4 +8,5 @@ public class SensorDataSerde extends WrapperSerde<SensorData> {
         super(new SensorDataSerializer(), new SensorDataDeSerializer());
     }
 
+
 }

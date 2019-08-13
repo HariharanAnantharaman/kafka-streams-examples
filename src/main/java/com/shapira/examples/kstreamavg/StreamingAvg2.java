@@ -36,6 +36,7 @@ public class StreamingAvg2 {
     	final String bootstrapServers ="localhost:9092";
         //final String schemaRegistryUrl = args.length > 1 ? args[1] : "http://localhost:8081";
         
+    	
         //Serde<SensorData> sensorDataSerde = Serdes.serdeFrom(new SensorDataSerializer(), new SensorDataDeSerializer());
         SensorDataSerde sensorDataSerde = new SensorDataSerde();
         

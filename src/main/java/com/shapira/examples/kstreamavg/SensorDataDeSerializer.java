@@ -31,6 +31,7 @@ public class SensorDataDeSerializer  implements Deserializer<SensorData> {
 		return gson.fromJson(val, SensorData.class);
 		
 	}
+	
 
 	@Override
 	public void close() {

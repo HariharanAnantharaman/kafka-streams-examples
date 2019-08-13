@@ -10,4 +10,5 @@ public class StreamInitializer implements Initializer<Double> {
 		return 0.0;
 	}
 
+	
 }

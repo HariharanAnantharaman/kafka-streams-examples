@@ -36,6 +36,7 @@ public class SensorData implements Serializable {
 		return n;
 	}
 
+	
 	public void setN(String n) {
 		this.n = n;
 	}
